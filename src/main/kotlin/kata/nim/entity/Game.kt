@@ -18,8 +18,8 @@ class Game(matches: Int?, minMatchesPerTurn: Int?, maxMatchesPerTurn: Int?, hard
         if (this.minMatchesPerTurn >= this.maxMatchesPerTurn || this.minMatchesPerTurn < 0) {
             throw BadRequestException("Invalid Combination of min- and max Matcher per Turn")
         }
-        if (this.matches < this.minMatchesPerTurn) {
-            throw BadRequestException("Game should allow at least one turn")
+        if (this.matches < this.minMatchesPerTurn || this.matches > 127) { //127 because matches are stored as tinyint in db
+            throw BadRequestException("Invalid number of matches")
         }
     }
 
