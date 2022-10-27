@@ -8,6 +8,7 @@ import kata.nim.repository.GameRepository
 import kata.nim.repository.GameRoundRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.lang.Integer.min
 import java.util.*
 import kotlin.math.max
 
@@ -30,8 +31,6 @@ class GameService(private val gameRepository: GameRepository, private val gameRo
     }
 
     fun takeTurn(game: Game, matchesTaken: Int): Game {
-//        val game = gameRepository.findByIdOrNull(gameId)
-//            ?: throw BadRequestException("Game with id: $gameId could not be found")
         if (game.winner != null) {
             throw BadRequestException("Game is finished, player ${game.winner} won!")
         }
@@ -60,6 +59,10 @@ class GameService(private val gameRepository: GameRepository, private val gameRo
     }
 
     private fun addTurn(game: Game, player: GamePlayer, matchesTaken: Int) {
+        val matchesTaken = min(
+            matchesTaken,
+            game.matches
+        ) //as minMatchesPerTurn can be greater than one, a valid turn could lead to negative matches
         val playerRound = GameRound(player, matchesTaken, +game.round)
         playerRound.game = game
         game.matches -= matchesTaken
