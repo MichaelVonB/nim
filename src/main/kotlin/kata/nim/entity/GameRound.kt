@@ -7,7 +7,8 @@ import javax.persistence.*
 @Table(name = "game_round")
 data class GameRound(
 
-    val player: String,
+    @Enumerated(EnumType.STRING)
+    val player: GamePlayer,
     val matchesTaken: Int,
     val round: Int,
     @Id

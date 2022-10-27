@@ -1,6 +1,7 @@
 package kata.nim.service
 
 import kata.nim.entity.Game
+import kata.nim.entity.GamePlayer
 import kata.nim.entity.GameRound
 import kata.nim.errorhandling.BadRequestException
 import kata.nim.repository.GameRepository
@@ -28,18 +29,19 @@ class GameService(private val gameRepository: GameRepository, private val gameRo
         return gameRepository.findAll()
     }
 
-    fun takeTurn(gameId: UUID, matchesTaken: Int): Game {
-        val game = gameRepository.findByIdOrNull(gameId)
-            ?: throw BadRequestException("Game with id: $gameId could not be found")
+    fun takeTurn(game: Game, matchesTaken: Int): Game {
+//        val game = gameRepository.findByIdOrNull(gameId)
+//            ?: throw BadRequestException("Game with id: $gameId could not be found")
         if (game.winner != null) {
             throw BadRequestException("Game is finished, player ${game.winner} won!")
         }
         if (matchesTaken > game.maxMatchesPerTurn || matchesTaken < game.minMatchesPerTurn) {
             throw BadRequestException("Need to take between ${game.minMatchesPerTurn} and ${game.maxMatchesPerTurn} Matches")
         }
-        addTurn(game, "Player", matchesTaken)
+        addTurn(game, GamePlayer.PLAYER, matchesTaken)
         if (game.matches <= 0) {
-            game.winner = "Computer"
+            game.winner = GamePlayer.COMPUTER
+
             gameRepository.save(game)
             return game
         }
@@ -49,15 +51,15 @@ class GameService(private val gameRepository: GameRepository, private val gameRo
                 game.minMatchesPerTurn,
                 game.maxMatchesPerTurn
             ).random()
-        addTurn(game, "Computer", computerMatches)
+        addTurn(game, GamePlayer.COMPUTER, computerMatches)
         if (game.matches <= 0) {
-            game.winner = "Player"
+            game.winner = GamePlayer.PLAYER
         }
         gameRepository.save(game)
         return game
     }
 
-    private fun addTurn(game: Game, player: String, matchesTaken: Int) {
+    private fun addTurn(game: Game, player: GamePlayer, matchesTaken: Int) {
         val playerRound = GameRound(player, matchesTaken, +game.round)
         playerRound.game = game
         game.matches -= matchesTaken

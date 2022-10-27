@@ -8,7 +8,7 @@ data class GameDetailedResponse(
     val minMatchesPerTurn: Int,
     val maxMatchesPerTurn: Int,
     val round: Int,
-    val winner: String,
+    val winner: String?,
     val isHard: Boolean,
     val rounds: List<GameRoundResponse>
 )
