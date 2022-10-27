@@ -34,6 +34,6 @@ To find recent matches
 ``` curl -X GET http://localhost:8080/game ```
 
 this will give basic Informations about all games. 
-To view more details of the game
+To view more details of a game
 
 ``` curl -X GET http://localhost:8080/game/{gameId} ```
