@@ -3,6 +3,7 @@ package kata.nim.service
 import kata.nim.entity.Game
 import kata.nim.entity.GamePlayer
 import kata.nim.errorhandling.BadRequestException
+import kata.nim.repository.GameRepository
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -18,6 +19,9 @@ internal class GameServiceTest {
 
     @Autowired
     lateinit var gameService: GameService
+
+    @Autowired
+    lateinit var gameRepository: GameRepository
 
     @Test
     fun createTestWithNoArgsShouldCreateStandardGame() {
@@ -67,7 +71,6 @@ internal class GameServiceTest {
     fun getGameShouldFindCorrectGame() {
         val standardGame = createStandardGame()
         val game = gameService.getGame(standardGame.id)
-
         assertNotNull(game)
         assertNotNull(game?.id)
         assertEquals(standardGame.id, game?.id)
@@ -85,8 +88,52 @@ internal class GameServiceTest {
         val numberOfGames = IntRange(1, 10).random()
         for (i in (0..numberOfGames)) createStandardGame()
         val games = gameService.getGames()
+        assertTrue(games.totalElements >= numberOfGames)
+    }
 
-        assertTrue(games.size >= numberOfGames)
+    @Test
+    fun getGameWithFilterShouldOnlyReturnFinishedGames() {
+        val openGame = createStandardGame()
+        gameRepository.save(openGame)
+        val finishedGame = createRandomGame()
+        finishedGame.matches = 0; finishedGame.winner = GamePlayer.COMPUTER
+        gameRepository.save(finishedGame)
+
+        val games = gameService.getGames(open = false)
+        val matched = games.filter { g -> g.id == finishedGame.id }.count() == 1
+        val containsOpenGame = games.filter { g -> g.id == openGame.id }.count() == 1
+        assertTrue(matched)
+        assertFalse(containsOpenGame)
+    }
+
+    @Test
+    fun getGameWithCombinedFilterShouldOnlyReturnMatchedGames() {
+        val standardGame = createStandardGame()
+        val finishedGame = createRandomGame()
+        finishedGame.matches = 0; finishedGame.winner = GamePlayer.COMPUTER
+        val hardGame = createRandomGame(true)
+        gameRepository.saveAll(listOf(standardGame, finishedGame, hardGame))
+
+        val games = gameService.getGames(open = true, isHard = true)
+        val matched = games.filter { g -> g.id == hardGame.id }.count() == 1
+        val containsOtherGames = games.filter { g -> g.id == standardGame.id || g.id == finishedGame.id }.count() == 1
+        assertTrue(matched)
+        assertFalse(containsOtherGames)
+    }
+
+    @Test
+    fun getGameWithFilterShouldOnlyReturnHardGames() {
+        val easyGame = createStandardGame()
+        gameRepository.save(easyGame)
+        val hardGame = createRandomGame()
+        hardGame.isHard = true
+        gameRepository.save(hardGame)
+
+        val games = gameService.getGames(isHard = true)
+        val matched = games.filter { g -> g.id == hardGame.id }.count() == 1
+        val containsEasyGame = games.filter { g -> g.id == easyGame.id }.count() > 1
+        assertTrue(matched)
+        assertFalse(containsEasyGame)
     }
 
 
@@ -141,9 +188,9 @@ internal class GameServiceTest {
         assertEquals(game.rounds[game.rounds.size - 1].player, GamePlayer.PLAYER)
     }
 
-    @ParameterizedTest(name = "ComputerShouldAwaysTakeValidTurn")
+    @ParameterizedTest(name = "ComputerShouldAlwaysTakeValidTurnIfHard={0}")
     @ValueSource(booleans = [false, true])
-    fun ComputerShouldAlwaysTakeValidTurn(hard: Boolean) {
+    fun ComputerShouldAlwaysMakeValidTurn(hard: Boolean) {
         var game = createRandomGame(hard)
         game = gameService.takeTurn(game, (game.minMatchesPerTurn..game.maxMatchesPerTurn).random())
         assertEquals(game.rounds.size, 2)

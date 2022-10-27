@@ -1,7 +1,7 @@
 # How to start
 `./mvnw spring-boot:run`
 or build the application
-`./mvnw package`
+`./mvnw clean package`
 and run as a jar
 `java -jar target/nim-0.0.1-SNAPSHOT.jar`
 
@@ -28,3 +28,12 @@ Each turn a player has to take a number of matches. To execute a turn run
 ``` curl -X PUT http://localhost:8080/game/{gameId}?matchesTaken=n ```
 
 if the game did not finish after the players turn, the response will include the computers turn. 
+Each game is stored in a file Memory Database (H2) and can be viewed and continued any time. 
+To find recent matches
+
+``` curl -X GET http://localhost:8080/game ```
+
+this will give basic Informations about all games. 
+To view more details of the game
+
+``` curl -X GET http://localhost:8080/game/{gameId} ```

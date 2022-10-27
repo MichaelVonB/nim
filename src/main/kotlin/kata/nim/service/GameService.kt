@@ -4,8 +4,10 @@ import kata.nim.entity.Game
 import kata.nim.entity.GamePlayer
 import kata.nim.entity.GameRound
 import kata.nim.errorhandling.BadRequestException
-import kata.nim.repository.GameRepository
-import kata.nim.repository.GameRoundRepository
+import kata.nim.repository.*
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.jpa.domain.Specification
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.lang.Integer.min
@@ -26,8 +28,19 @@ class GameService(private val gameRepository: GameRepository, private val gameRo
         return gameRepository.findByIdOrNull(id)
     }
 
-    fun getGames(): MutableList<Game> {
-        return gameRepository.findAll()
+    fun getGames(
+        open: Boolean? = null,
+        isHard: Boolean? = null,
+        winner: GamePlayer? = null,
+        pageSize: Int = 25,
+        pageNumber: Int = 0
+    ): Page<Game> {
+        var specification: Specification<Game>? = null
+        if (open != null) specification = addAndSpecificationIfNotNull(specification, gameIsOpen(open))
+        if (isHard != null) specification = addAndSpecificationIfNotNull(specification, gameIsHard(isHard))
+        if (winner != null) specification = addAndSpecificationIfNotNull(specification, withWinner(winner))
+        return gameRepository.findAll(specification, PageRequest.of(pageNumber, pageSize))
+
     }
 
     fun takeTurn(game: Game, matchesTaken: Int): Game {

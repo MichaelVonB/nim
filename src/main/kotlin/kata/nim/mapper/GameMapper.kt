@@ -27,5 +27,6 @@ fun GameRound.toDto() = GameRoundResponse(
 fun Game.toDto() = GameResponse(
     id = id,
     matches = matches,
-    open = winner == null
+    open = winner == null,
+    isHard = isHard
 )

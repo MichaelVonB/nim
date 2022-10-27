@@ -33,7 +33,7 @@ internal class GameMapperTest {
         assertEquals(gameDetailed.isHard, game.isHard)
     }
 
-    @ParameterizedTest(name = "map Game Entity")
+    @ParameterizedTest(name = "map Game Entity with Winner {0}")
     @NullSource
     @EnumSource(GamePlayer::class)
     fun mapGameEntity(player: GamePlayer?) {

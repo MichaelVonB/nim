@@ -29,6 +29,6 @@ class Game(matches: Int?, minMatchesPerTurn: Int?, maxMatchesPerTurn: Int?, hard
     var winner: GamePlayer? = null
     var isHard = hard ?: false // if game is set to hard, the computer will try to win the game
 
-    @OneToMany(mappedBy = "game")
+    @OneToMany(mappedBy = "game", fetch = FetchType.LAZY)
     var rounds = listOf<GameRound>()
 }
